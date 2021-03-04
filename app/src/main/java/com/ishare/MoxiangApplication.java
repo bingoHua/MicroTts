@@ -2,7 +2,6 @@ package com.ishare;
 
 import android.app.Application;
 import android.content.res.AssetManager;
-import android.os.Environment;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,9 +15,9 @@ import java.io.InputStream;
 
 public class MoxiangApplication extends Application {
 
-    static File baseDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), Const.MY_BASE_DIR);
-    static File offlineDir = new File(baseDir, Const.OFFLINE_VOICE_DIR);
-    static File outputDir = new File(baseDir, Const.OUTPUT_DIR);
+    File baseDir;
+    File offlineDir;
+    File outputDir;
 
     private AssetManager assets;
 
@@ -27,22 +26,30 @@ public class MoxiangApplication extends Application {
         super.onCreate();
 
         this.assets = getAssets();
+        baseDir = new File(this.getCacheDir(), Const.MY_BASE_DIR);
+        offlineDir = new File(baseDir, Const.OFFLINE_VOICE_DIR);
+        outputDir = new File(baseDir, Const.OUTPUT_DIR);
         copyAssetsFile("bd_etts_text.dat");
         copyAssetsFile("bd_etts_common_speech_m15_mand_eng_high_am-mix_v3.0.0_20170505.dat");
         copyAssetsFile("bd_etts_common_speech_f7_mand_eng_high_am-mix_v3.0.0_20170512.dat");
         copyAssetsFile("bd_etts_common_speech_yyjw_mand_eng_high_am-mix_v3.0.0_20170512.dat");
         copyAssetsFile("bd_etts_common_speech_as_mand_eng_high_am_v3.0.0_20170516.dat");
+        copyAssetsFile("ssml.ftl");
     }
 
-    public String getTextModeFile(){
-       return getOfflineDir().getPath() + "/" + "bd_etts_text.dat";
+    public String getTextModeFile() {
+        return getOfflineDir().getPath() + "/" + "bd_etts_text.dat";
     }
 
-    public String getSpeechModeFile(){
+    public String getSpeechModeFile() {
         return getOfflineDir().getPath() + "/" + "bd_etts_common_speech_as_mand_eng_high_am_v3.0.0_20170516.dat";
     }
 
-    public static File getOfflineDir() {
+    public String getSmmlFile() {
+        return getOfflineDir().getPath() + "/" + "ssml.ftl";
+    }
+
+    public File getOfflineDir() {
 
         if (!offlineDir.isDirectory()) {
             offlineDir.delete();
@@ -51,7 +58,7 @@ public class MoxiangApplication extends Application {
         return offlineDir;
     }
 
-    public static File getOutputDir() {
+    public File getOutputDir() {
 
         if (!outputDir.isDirectory()) {
             outputDir.delete();
@@ -60,17 +67,17 @@ public class MoxiangApplication extends Application {
         return outputDir;
     }
 
-    private  void copyAssetsFile(String sourceFilename){
+    private void copyAssetsFile(String sourceFilename) {
 
         String destFilename = getOfflineDir().getAbsolutePath() + "/" + sourceFilename;
         try {
             copyFromAssets(assets, sourceFilename, destFilename);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static void copyFromAssets(AssetManager assets, String source, String dest) throws IOException {
+    private void copyFromAssets(AssetManager assets, String source, String dest) throws IOException {
 
         File file = new File(dest);
         if (!file.exists()) {

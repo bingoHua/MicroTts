@@ -30,7 +30,7 @@
         <activity android:name="com.ishare.speech.TestSpeechActivity"/>
 
         <service
-            android:name="com.ishare.ttsengine.MoxiangTtsService"
+            android:name="com.ishare.ttsengine.MicroTtsService"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.TTS_SERVICE" />
