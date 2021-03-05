@@ -1,23 +1,25 @@
 package com.ishare.ttsengine
 
 import android.media.AudioFormat
+import android.media.AudioFormat.ENCODING_PCM_16BIT
 import android.media.MediaPlayer
 import android.speech.tts.SynthesisCallback
 import android.speech.tts.SynthesisRequest
 import android.speech.tts.TextToSpeech
 import android.speech.tts.TextToSpeechService
 import com.ishare.MoxiangApplication
+import com.microsoft.cognitiveservices.speech.ResultReason
 import com.microsoft.cognitiveservices.speech.SpeechConfig
 import com.microsoft.cognitiveservices.speech.SpeechSynthesizer
 import com.microsoft.cognitiveservices.speech.audio.AudioConfig
 import freemarker.template.Configuration
 import freemarker.template.TemplateExceptionHandler
+import org.apache.commons.codec.digest.DigestUtils
 import java.io.FileInputStream
-import java.io.OutputStreamWriter
 import java.io.StringWriter
 import java.util.*
+import java.util.logging.Logger
 import kotlin.collections.HashMap
-import org.apache.commons.codec.digest.DigestUtils
 
 
 private const val SAMPLING_RATE_HZ = 16000
@@ -35,6 +37,7 @@ class MicroTtsService : TextToSpeechService(), MediaPlayer.OnPreparedListener,
     lateinit var fileCachePath: String
     lateinit var callback: SynthesisCallback
     private val player by lazy { MediaPlayer() }
+    val logger = Logger.getLogger("TAG")
 
     @Volatile
     private var mStopRequested = false
@@ -48,6 +51,11 @@ class MicroTtsService : TextToSpeechService(), MediaPlayer.OnPreparedListener,
         super.onCreate()
         app = application as MoxiangApplication
         initEngine()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        player.release()
     }
 
     fun initEngine() {
@@ -85,6 +93,7 @@ class MicroTtsService : TextToSpeechService(), MediaPlayer.OnPreparedListener,
 
     override fun onStop() {
         mStopRequested = true
+        player.stop()
         player.release()
     }
 
@@ -116,55 +125,61 @@ class MicroTtsService : TextToSpeechService(), MediaPlayer.OnPreparedListener,
         // in 16bit PCM mono.
         callback.start(SAMPLING_RATE_HZ,
                 AudioFormat.ENCODING_PCM_16BIT, 1 /* Number of channels. */)
-        // We then scan through each character of the request string and
-        // generate audio for it.
-        // We then scan through each character of the request string and
-        // generate audio for it.
         val text = request.charSequenceText.toString()
-        val root = HashMap<String, Any>()
-        root["text"] = text
-        val temp = cfg.getTemplate("ssml.ftlx")
-        var out = StringWriter()
-        temp.process(root, out)
-        fileCachePath = getExternalFilesDir(null).absolutePath + "/${out.toString().md5()}.wav"
+        logger.info("text=${text}")
+        if (text.isEmpty()) {
+            callback.error()
+            return
+        }
+        fileCachePath = getExternalFilesDir(null).absolutePath + "/${text.md5()}.wav"
         audioConfig = AudioConfig.fromWavFileOutput(fileCachePath)
         synthesizer = SpeechSynthesizer(speechConfig, audioConfig)
-        val result = synthesizer.SpeakSsml(out.toString())
-        val file = fileCachePath
-        try {
-            player.reset()
-            player.setDataSource(FileInputStream(file).fd)
-            player.prepareAsync()
-        } catch (e: Exception) {
-            e.printStackTrace()
+        val result = synthesizer.SpeakSsml(text.toSsml(cfg))
+        if (result.reason == ResultReason.SynthesizingAudioCompleted) {
+            val file = fileCachePath
+            try {
+                player.setDataSource(FileInputStream(file).fd)
+                player.prepareAsync()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                callback.done()
+            }
         }
-        // Alright, we're done with our synthesis - yay!
-        // Alright, we're done with our synthesis - yay!
-        //callback.done()
     }
 
     override fun onPrepared(mp: MediaPlayer?) {
-        mp?.start()
+        if (!mStopRequested) {
+            logger.info("prepared.")
+            mp?.start()
+            callback.start(0, ENCODING_PCM_16BIT, 1)
+        }
     }
 
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
+        logger.info("onError.${what}")
+        player.reset()
+        callback.error()
         return true
     }
 
     override fun onCompletion(mp: MediaPlayer?) {
+        logger.info("completion.")
+        player.reset()
         callback.done()
     }
 
-    fun test(text: String) {
-        val root = HashMap<String, Any>()
-        root["text"] = text
-        val temp = cfg.getTemplate("ssml.ftlx")
-        val out = OutputStreamWriter(System.out)
-        temp.process(root, out)
-    }
 
 }
 
-fun String.md5():String {
+fun String.toSsml(cfg: Configuration): String {
+    val root = HashMap<String, Any>()
+    root["text"] = this
+    val temp = cfg.getTemplate("ssml.ftlx")
+    val out = StringWriter()
+    temp.process(root, out)
+    return out.toString()
+}
+
+fun String.md5(): String {
     return DigestUtils.md5Hex(this)
 }
