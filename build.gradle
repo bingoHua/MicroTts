@@ -25,6 +25,9 @@ allprojects {
         maven {
             url "https://mvnrepository.com/artifact/org.freemarker/freemarker"
         }
+        maven {
+            url "https://mvnrepository.com/artifact/commons-codec/commons-codec"
+        }
         google()
         jcenter()
     }

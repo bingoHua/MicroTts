@@ -58,7 +58,7 @@ public class XmlDom {
 			if (doc != null){
 				speak = doc.createElement("speak");
 				speak.setAttribute("version", "1.0");
-				speak.setAttribute("xml:lang", "en-us");
+				speak.setAttribute("xml:lang", locale);
 				voice = doc.createElement("voice");
 				voice.setAttribute("xml:lang", locale);
 				voice.setAttribute("xml:gender", genderName);

@@ -2,7 +2,6 @@ package com.ishare;
 
 import android.app.Application;
 import android.content.res.AssetManager;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

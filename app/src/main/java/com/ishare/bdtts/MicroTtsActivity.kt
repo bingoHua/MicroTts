@@ -24,7 +24,7 @@ class MicroTtsActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_micro_tts)
         app = application as MoxiangApplication
-        fileCachePath = this.cacheDir.absolutePath + "/file.wav"
+        fileCachePath = getExternalFilesDir(null).absolutePath + "/file.wav"
         initEngine()
     }
 
@@ -42,13 +42,7 @@ class MicroTtsActivity : Activity() {
         val temp = cfg.getTemplate("ssml.ftlx")
         val out = StringWriter()
         temp.process(root, out)
-        var str: String = "<speak version=\"1.0\""
-        str += " xmlns=\"http://www.w3.org/2001/10/synthesis\""
-        str += " xml:lang=\"en-US\">"
-        str += "<say-as type=\"date:mdy\"> 1/29/2009 </say-as>"
-        str += "</speak>"
-        val dom = XmlDom.createDom("zh-CN", "Female", "zh-CN-XiaoyouNeural", text)
-        val result = synthesizer.SpeakText("test test test")
+        val result = synthesizer.SpeakSsml(out.toString())
     }
 
 }
