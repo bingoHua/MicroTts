@@ -11,7 +11,6 @@ import com.microsoft.cognitiveservices.speech.SpeechConfig
 import com.microsoft.cognitiveservices.speech.SpeechSynthesizer
 import com.microsoft.cognitiveservices.speech.audio.AudioConfig
 import freemarker.template.Configuration
-import java.io.File
 import java.io.FileInputStream
 import java.io.OutputStreamWriter
 import java.util.*
@@ -28,8 +27,10 @@ class MicroTtsService : TextToSpeechService(), MediaPlayer.OnPreparedListener,
 
     lateinit var mCurrentLanguage: Array<String>
     lateinit var cfg: Configuration
-    private val player by lazy { MediaPlayer() }
     lateinit var app: MoxiangApplication
+    lateinit var fileCachePath: String
+
+    private val player by lazy { MediaPlayer() }
 
     @Volatile
     private var mStopRequested = false
@@ -39,7 +40,6 @@ class MicroTtsService : TextToSpeechService(), MediaPlayer.OnPreparedListener,
      */
     private val mAudioBuffer = ByteArray(SAMPLING_RATE_HZ * 2)
 
-    lateinit var fileCachePath: String
     override fun onCreate() {
         super.onCreate()
         app = application as MoxiangApplication
@@ -51,7 +51,7 @@ class MicroTtsService : TextToSpeechService(), MediaPlayer.OnPreparedListener,
         speechConfig = SpeechConfig.fromSubscription("94d6710439d04b7cb402fabcffd3b558", "eastus")
         audioConfig = AudioConfig.fromWavFileOutput(fileCachePath)
         synthesizer = SpeechSynthesizer(speechConfig, audioConfig)
-        cfg = Configuration(Configuration.VERSION_2_3_31)
+        cfg = Configuration(Configuration.VERSION_2_3_23)
 
         cfg.setDirectoryForTemplateLoading(app.offlineDir)
         cfg.defaultEncoding = "UTF-8"
@@ -152,7 +152,7 @@ class MicroTtsService : TextToSpeechService(), MediaPlayer.OnPreparedListener,
     fun test(text: String) {
         val root = HashMap<String, Any>()
         root["text"] = text
-        val temp = cfg.getTemplate("ssml.ftl")
+        val temp = cfg.getTemplate("ssml.ftlx")
         val out = OutputStreamWriter(System.out)
         temp.process(root, out)
     }

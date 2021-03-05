@@ -3,7 +3,6 @@ apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion "28.0.3"
     defaultConfig {
         applicationId "com.ishare.bdtts"
         minSdkVersion 23
@@ -32,7 +31,7 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation 'com.microsoft.cognitiveservices.speech:client-sdk:1.15.0'
 // https://mvnrepository.com/artifact/org.freemarker/freemarker
-    implementation 'no.api.freemarker:freemarker-java8:2.0.0'
+    implementation group: 'org.freemarker', name: 'freemarker-gae', version: '2.3.31'
 
     testImplementation 'junit:junit:4.12'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

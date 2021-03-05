@@ -1,0 +1,6 @@
+<#ftl output_format="XML">
+<speak version='1.0' xml:lang='zh-CN'>
+    <voice name='zh-CN-XiaoxiaoNeural' xml:gender='Female' xml:lang='zh-CN'>
+        ${text}
+    </voice>
+</speak>
